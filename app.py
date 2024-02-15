@@ -300,6 +300,8 @@ def set_border_status(uuid_from_form, uuid_from_cookie, status, note):
     border_authority_abi = contract_artifacts_file['abi']
     user_contract_address = gov_contract.functions.getSubContractDetails(uuid_from_form).call()
     border_authority_address = gov_contract.functions.getBorderAuthority(uuid_from_cookie).call()
+    print("user_contract_address: ",user_contract_address)
+    print("border_authority_address: ",border_authority_address)
     border_authority_contract = w3.eth.contract(address=border_authority_address, abi=border_authority_abi)
     tx = border_authority_contract.functions.setBorderStatus(user_contract_address, status, note).buildTransaction({
         'from': account_address,
@@ -319,6 +321,7 @@ def get_all_statuses_and_notes(uuid_from_form, uuid_from_cookie):
     border_authority_address = gov_contract.functions.getBorderAuthority(uuid_from_cookie).call()
     border_authority_contract = w3.eth.contract(address=border_authority_address, abi=border_authority_abi)
     all_statuses_and_notes = border_authority_contract.functions.getStatusesAndNotes(usercontract_address).call()
+    
     return all_statuses_and_notes
 
 # @app.route('/login', methods=['GET', 'POST'])
@@ -370,7 +373,7 @@ def status_page():
         # You may want to do something with the receipt, like confirming the transaction
 
     # Get the UUID from the form
-    uuid_from_form = request.form.get('uid')
+    uuid_from_form = request.args.get('uid')
 
     # Get the UUID from the cookie
     uuid_from_cookie = request.cookies.get('uuid')
@@ -385,6 +388,8 @@ def status_page():
     if request.args.get('get_all_status') == 'true':
         # Get statuses and notes using both UUIDs
         statuses, notes = get_all_statuses_and_notes(uuid_from_form, uuid_from_cookie)
+        # print("statuses: ", statuses)
+        # print("notes: ", notes)
         return render_template('status.html', statuses=statuses, notes=notes)
 
     # If the user didn't click on the button, simply render the status page
