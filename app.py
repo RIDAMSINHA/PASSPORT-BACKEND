@@ -170,8 +170,8 @@ def utility_processor():
 def deploy_border_authoritycontract():
     transport_name = request.form['transport_name']
     uuid = request.form['uuid']
-    id = request.form['id']
-    tx = gov_contract.functions.deployBorderAuthorityContract(transport_name, uuid, id).buildTransaction({
+    # id = request.form['id']
+    tx = gov_contract.functions.deployBorderAuthorityContract(transport_name, uuid).buildTransaction({
         'from': account_address,  # Set the sender address
         'nonce': w3.eth.getTransactionCount(account_address),  # Get the nonce for the account
         'gas': 2000000,  # Set the gas limit for the transaction
@@ -213,18 +213,18 @@ def submit_form():
     data = request.get_json()
     password = data.get('_password')
     email = data.get('_email')
-    id = data.get('_id')
+    # id = data.get('_id')
     
 
     # Call the deploy_border_authority_contract function
-    formatted_receipt = deploy_border_authority_contract( password,email, id)
+    formatted_receipt = deploy_border_authority_contract( password,email)
     
     # Return the formatted receipt to the frontend
     return jsonify(formatted_receipt)
 
 # Define the deploy_border_authority_contract function
-def deploy_border_authority_contract(password,email, id):
-    tx = gov_contract.functions.deployBorderAuthorityContract(password,email, id).buildTransaction({
+def deploy_border_authority_contract(password,email):
+    tx = gov_contract.functions.deployBorderAuthorityContract(password,email).buildTransaction({
         'from': account_address,
         'nonce': w3.eth.getTransactionCount(account_address),
         'gas': 2000000,
@@ -285,7 +285,7 @@ def deploy_border_authority_contract(password,email, id):
 #     border_authority_contract = w3.eth.contract(address=border_authority_address, abi=border_authority_abi)
 #     return border_authority_contract.functions.login(transport_name, uuid).call()
 
-def login_to_border_authority( transport_name, uuid, id):
+def login_to_border_authority( transport_name, uuid):
     contract_artifacts_file = json.load(open('./contracts/BorderAuthority.json'))
     border_authority_abi = contract_artifacts_file['abi']
     # Use Web3 to interact with the gov contract and get the BorderAuthority address
@@ -293,7 +293,7 @@ def login_to_border_authority( transport_name, uuid, id):
     border_authority_contract = w3.eth.contract(address=border_authority_address, abi=border_authority_abi)
     
     # Call the login function of the BorderAuthority contract
-    return border_authority_contract.functions.login(transport_name, uuid, id).call()
+    return border_authority_contract.functions.login(transport_name, uuid).call()
 
 def set_border_status(uuid_from_form, uuid_from_cookie, status, note):
     contract_artifacts_file = json.load(open('./contracts/BorderAuthority.json'))
@@ -343,9 +343,9 @@ def login():
         data = request.get_json()
         transport_name = data.get('_password')
         _uuid = data.get('_uuid')
-        id = data.get('_id')
+        # id = data.get('_id')
 
-        if login_to_border_authority(transport_name, _uuid, id):
+        if login_to_border_authority(transport_name, _uuid):
             # Generate a UUID
             uuid_value = str(uuid.uuid4())
             # Combine the secret key and UUID
@@ -370,7 +370,7 @@ def status_page():
         status = request.form['status']
         note = request.form['note']
         receipt = set_border_status(uuid_from_form, uuid_from_cookie, status, note)
-        # You may want to do something with the receipt, like confirming the transaction
+        return redirect(url_for('status_page'))
 
     # Get the UUID from the form
     uuid_from_form = request.args.get('uid')
