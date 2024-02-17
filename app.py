@@ -10,7 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask import jsonify
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, session, url_for, make_response
 from flask_cors import CORS
 from web3 import Account, HTTPProvider, Web3
 # from web3.middleware import geth_poa_middleware
@@ -324,6 +324,19 @@ def get_all_statuses_and_notes(uuid_from_form, uuid_from_cookie):
     
     return all_statuses_and_notes
 
+# Function to set cookies with statuses and notes
+def set_status_cookie(statuses, notes):
+    response = make_response(redirect(url_for('status_page')))
+    response.set_cookie('statuses', ','.join(statuses), domain='localhost')
+    response.set_cookie('notes', ','.join(notes), domain='localhost')
+    return response
+
+# Function to retrieve statuses and notes from cookies
+def get_status_cookie():
+    statuses = request.cookies.get('statuses')
+    notes = request.cookies.get('notes')
+    return statuses.split(','), notes.split(',') if statuses and notes else [], []
+
 # @app.route('/login', methods=['GET', 'POST'])
 # def login():
 #     if request.method == 'POST':
@@ -370,6 +383,9 @@ def status_page():
         status = request.form['status']
         note = request.form['note']
         receipt = set_border_status(uuid_from_form, uuid_from_cookie, status, note)
+        
+        response = set_status_cookie([status], [note])
+        return response
         return redirect(url_for('status_page'))
 
     # Get the UUID from the form
